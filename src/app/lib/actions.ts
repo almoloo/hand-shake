@@ -37,12 +37,28 @@ export const fetchProfile = async (uuid: string) => {
     const profileFile = allProfiles?.data.fileList.findLast(
       (profile) => profile.fileName === uuid
     );
+    if (!profileFile) {
+      return null;
+    }
     const profileCID = profileFile?.cid;
     const profile = await axios.get(
       `https://gateway.lighthouse.storage/ipfs/${profileCID}`
     );
     console.log(profile.data);
     return profile.data;
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+// ----- UPLOAD PROFILE IMAGE TO LIGHTHOUSE -----
+export const uploadProfileImage = async (file: File, uuid: string) => {
+  try {
+    const response = await lighthouse.upload(
+      file,
+      process.env.LIGHTHOUSE_API_KEY!
+    );
+    return response.data.Hash;
   } catch (error) {
     console.error(error);
   }
