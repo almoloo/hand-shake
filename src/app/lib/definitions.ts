@@ -3,9 +3,6 @@ import type { BrowserProvider, JsonRpcSigner } from "ethers";
 
 export interface User {
   uuid: string;
-  email?: string;
-  name?: string;
-  created_at?: Date;
   address: string;
 }
 
@@ -18,3 +15,11 @@ export type AuthContextType = {
   login: () => Promise<UserInfo | null>;
   logout: () => Promise<void>;
 };
+
+export interface UserProfile {
+  user: User;
+  avatar: string;
+  name: string;
+  email: string;
+  bio: string;
+}
