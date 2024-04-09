@@ -40,17 +40,19 @@ export const fetchAllProfiles = async () => {
 export const fetchProfile = async (uuid: string) => {
   try {
     const allProfiles = await fetchAllProfiles();
-    const profileFile = allProfiles?.data.fileList.findLast(
+    const filteredProfiles = allProfiles?.data.fileList.filter(
       (profile) => profile.fileName === uuid
     );
-    if (!profileFile) {
+    if (!filteredProfiles?.length) {
       return null;
     }
+    const profileFile = filteredProfiles?.sort(
+      (a, b) => b.lastUpdate - a.lastUpdate
+    )[0];
     const profileCID = profileFile?.cid;
     const profile = await axios.get(
       `https://gateway.lighthouse.storage/ipfs/${profileCID}`
     );
-    console.log(profile.data);
     return profile.data;
   } catch (error) {
     console.error(error);
