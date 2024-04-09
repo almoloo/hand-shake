@@ -18,7 +18,7 @@ export const particle = new ParticleNetwork({
   chainName: selectedNetwork.name,
   chainId: selectedNetwork.id,
   wallet: {
-    displayWalletEntry: true,
+    displayWalletEntry: false,
     defaultWalletEntryPosition: WalletEntryPosition.BR,
     uiMode: "light",
     supportChains: [{ id: selectedNetwork.id, name: selectedNetwork.name }],
@@ -76,8 +76,6 @@ export default function AuthProvider({
 
       const user: User = {
         uuid: userInfo.uuid,
-        email: userInfo.email,
-        name: userInfo.name,
         address: userInfo.wallets[0].public_address,
       };
 
