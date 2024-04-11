@@ -18,7 +18,6 @@ export type AuthContextType = {
 
 export interface UserProfile {
   user: User;
-  avatar: string;
   name: string;
   email: string;
   bio: string;
