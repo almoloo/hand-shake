@@ -9,7 +9,7 @@ export const saveProfile = async (profileInfo: UserProfile) => {
     const response = await lighthouse.uploadText(
       JSON.stringify(profileInfo),
       process.env.LIGHTHOUSE_API_KEY!,
-      profileInfo.user.uuid
+      `PROFILE-${profileInfo.user.uuid}`
     );
     return response;
   } catch (error) {
