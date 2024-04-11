@@ -41,7 +41,7 @@ export const fetchProfile = async (uuid: string) => {
   try {
     const allProfiles = await fetchAllProfiles();
     const filteredProfiles = allProfiles?.data.fileList.filter(
-      (profile) => profile.fileName === uuid
+      (profile) => profile.fileName === `PROFILE-${uuid}`
     );
     if (!filteredProfiles?.length) {
       return null;
