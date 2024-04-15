@@ -1,13 +1,13 @@
 "use client";
 
-import { useContext, useEffect, useState } from "react";
-import { AuthContext } from "@/app/ui/layout/AuthProvider";
+import { useEffect, useState } from "react";
 import { User, UserProfile } from "@/app/lib/definitions";
 import { saveProfile } from "@/app/lib/actions";
 import { fetchProfile } from "@/app/lib/data";
+import { useSDK } from "@metamask/sdk-react";
 
 export default function page() {
-  const auth = useContext(AuthContext);
+  const { account, ready } = useSDK();
   const [loading, setLoading] = useState(true);
   const [userInfo, setUserInfo] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -18,18 +18,19 @@ export default function page() {
   });
 
   useEffect(() => {
-    auth?.getUserInfo()?.then((userInfo) => {
-      setUserInfo({
-        uuid: userInfo?.uuid!,
-        address: userInfo?.wallets[0].public_address!,
-      });
+    if (!ready || !account || userInfo) return;
+    setUserInfo({
+      uuid: account,
+      address: account,
     });
-  }, [auth?.isAuthenticated]);
+  }, [ready, account]);
 
   useEffect(() => {
+    if (!userInfo) return;
     const getProfile = async () => {
       const profile = await fetchProfile(userInfo?.uuid!);
       setProfile(profile);
+      setLoading(false);
     };
     getProfile();
   }, [userInfo]);
@@ -41,7 +42,6 @@ export default function page() {
         name: profile.name,
         bio: profile.bio,
       });
-      setLoading(false);
     }
   }, [profile]);
 
@@ -95,6 +95,7 @@ export default function page() {
       </form>
       <div className="flex flex-col gap-1">
         <span>{loading ? "loading" : "finished"}</span>
+        <span>{account}</span>
         <span>{JSON.stringify(userInfo)}</span>
         <span>{JSON.stringify(profile)}</span>
         <span>{JSON.stringify(formData)}</span>

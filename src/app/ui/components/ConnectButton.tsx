@@ -1,25 +1,20 @@
 "use client";
 
 import { AuthContext } from "@/app/ui/layout/AuthProvider";
+import { useSDK } from "@metamask/sdk-react";
 import { useRouter } from "next/navigation";
 import { useContext, useEffect, useState } from "react";
 
 export default function ConnectButton() {
+  const { connected } = useSDK();
   const auth = useContext(AuthContext);
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [authenticated, setAuthenticated] = useState(
-    auth?.isAuthenticated ?? false
-  );
-
-  useEffect(() => {
-    setAuthenticated(auth?.isAuthenticated ?? false);
-  }, [auth?.isAuthenticated]);
 
   const handleConnect = async () => {
     setLoading(true);
     try {
-      await auth?.login();
+      await auth?.connect();
       router.push("/dashboard");
     } catch (error) {
       console.error(error);
@@ -31,7 +26,7 @@ export default function ConnectButton() {
   const handleDisconnect = async () => {
     setLoading(true);
     try {
-      await auth?.logout();
+      await auth?.disconnect();
       router.push("/");
     } catch (error) {
       console.error(error);
@@ -40,9 +35,9 @@ export default function ConnectButton() {
     }
   };
 
-  return authenticated ? (
+  return connected ? (
     <button onClick={handleDisconnect}>Disconnect</button>
   ) : (
-    <button onClick={handleConnect}>Connect</button>
+    <button onClick={handleConnect}>Connect {connected}</button>
   );
 }

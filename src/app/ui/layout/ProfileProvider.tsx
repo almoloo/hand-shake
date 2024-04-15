@@ -17,11 +17,9 @@ export default function ProfileProvider({
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
 
   useEffect(() => {
-    auth?.getUserInfo()?.then((userInfo) => {
-      setUserInfo({
-        uuid: userInfo?.uuid!,
-        address: userInfo?.wallets[0].public_address!,
-      });
+    setUserInfo({
+      uuid: auth?.user?.uuid!,
+      address: auth?.user?.address!,
     });
   }, [auth?.isAuthenticated]);
 

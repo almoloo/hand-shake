@@ -10,11 +10,9 @@ export interface User {
 export type AuthContextType = {
   isAuthenticated: boolean;
   user: User | null;
-  getUserInfo: () => Promise<UserInfo | null> | null;
   ethers: BrowserProvider | null;
-  ethersSigner: () => Promise<JsonRpcSigner> | null;
-  login: () => Promise<UserInfo | null>;
-  logout: () => Promise<void>;
+  connect: () => Promise<UserInfo | null>;
+  disconnect: () => Promise<void>;
 };
 
 export interface UserProfile {
