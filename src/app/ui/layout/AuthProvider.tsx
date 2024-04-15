@@ -3,7 +3,6 @@
 import { createContext, useEffect, useState } from "react";
 import { AuthContextType, User } from "@/app/lib/definitions";
 import { useSDK } from "@metamask/sdk-react";
-import { ethers } from "ethers";
 
 export const AuthContext = createContext<AuthContextType | null>(null);
 
@@ -42,7 +41,6 @@ export default function AuthProvider({
       setAuthInfo({
         isAuthenticated: true,
         user,
-        ethers: new ethers.BrowserProvider(window.ethereum),
         connect: handleConnect,
         disconnect: handleDisconnect,
       });
@@ -50,7 +48,6 @@ export default function AuthProvider({
       setAuthInfo({
         isAuthenticated: false,
         user: null,
-        ethers: new ethers.BrowserProvider(window.ethereum),
         connect: handleConnect,
         disconnect: handleDisconnect,
       });
@@ -60,7 +57,6 @@ export default function AuthProvider({
   const [authInfo, setAuthInfo] = useState<AuthContextType | null>({
     isAuthenticated: false,
     user: null,
-    ethers: null,
     connect: handleConnect,
     disconnect: handleDisconnect,
   });

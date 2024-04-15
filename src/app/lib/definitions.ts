@@ -10,7 +10,6 @@ export interface User {
 export type AuthContextType = {
   isAuthenticated: boolean;
   user: User | null;
-  ethers: BrowserProvider | null;
   connect: () => Promise<UserInfo | null>;
   disconnect: () => Promise<void>;
 };
