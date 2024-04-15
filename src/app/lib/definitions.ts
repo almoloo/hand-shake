@@ -1,5 +1,6 @@
 import type { UserInfo } from "@particle-network/auth";
 import type { BrowserProvider, JsonRpcSigner } from "ethers";
+import type { PushAPI as PushAPIType } from "@pushprotocol/restapi";
 
 export interface User {
   uuid: string;
@@ -11,7 +12,7 @@ export type AuthContextType = {
   user: User | null;
   getUserInfo: () => Promise<UserInfo | null> | null;
   ethers: BrowserProvider | null;
-  ethersSigner: () => Promise<JsonRpcSigner | null> | null;
+  ethersSigner: () => Promise<JsonRpcSigner> | null;
   login: () => Promise<UserInfo | null>;
   logout: () => Promise<void>;
 };
@@ -21,4 +22,15 @@ export interface UserProfile {
   name: string;
   email: string;
   bio: string;
+}
+
+export interface PushContextType {
+  pushUser: PushAPIType | null;
+  pushInit: () => Promise<PushAPIType>;
+}
+
+export interface InitSessionInfo {
+  email: string;
+  title: string;
+  description: string;
 }
