@@ -2,30 +2,10 @@
 
 import axios from "axios";
 import lighthouse from "@lighthouse-web3/sdk";
-
-export const fetchUserInfo = async (uuid: string, token: string) => {
-  // FETCH USER FROM ENDPOINT WITH BASIC AUTH
-  const endpoint = `https://api.particle.network/server/rpc`;
-  const response = await axios.post(
-    endpoint,
-    {
-      jsonrpc: "2.0",
-      id: 0,
-      method: "getUserInfo",
-      params: [uuid, token],
-    },
-    {
-      auth: {
-        username: process.env.NEXT_PUBLIC_PARTICLE_PROJECT_ID!,
-        password: process.env.PARTICLE_SERVER_KEY!,
-      },
-    }
-  );
-  return response.data;
-};
+import { profile } from "console";
 
 // ----- FETCH ALL PROFILES FROM LIGHTHOUSE -----
-export const fetchAllProfiles = async () => {
+export const fetchAllFiles = async () => {
   try {
     const response = await lighthouse.getUploads(
       process.env.LIGHTHOUSE_API_KEY!
@@ -39,7 +19,7 @@ export const fetchAllProfiles = async () => {
 // ----- FETCH PROFILE FROM LIGHTHOUSE -----
 export const fetchProfile = async (uuid: string) => {
   try {
-    const allProfiles = await fetchAllProfiles();
+    const allProfiles = await fetchAllFiles();
     const filteredProfiles = allProfiles?.data.fileList.filter(
       (profile) => profile.fileName === `PROFILE-${uuid}`
     );
@@ -54,6 +34,49 @@ export const fetchProfile = async (uuid: string) => {
       `https://gateway.lighthouse.storage/ipfs/${profileCID}`
     );
     return profile.data;
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+// ----- FETCH ALL SESSIONS -----
+export const fetchUserSessions = async (uuid: string) => {
+  try {
+    const allSessions = await fetchAllFiles();
+    const userSessions = allSessions?.data.fileList.filter(
+      (sessions) => sessions.fileName === `SESSIONS-${uuid}`
+    );
+    if (!userSessions?.length) {
+      return [];
+    }
+    const latestSessions = userSessions.sort(
+      (a, b) => b.lastUpdate - a.lastUpdate
+    )[0];
+    const sessionsCID = latestSessions.cid;
+    const sessions = await axios.get(
+      `https://gateway.lighthouse.storage/ipfs/${sessionsCID}`
+    );
+    return sessions.data;
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+// ----- FETCH SESSION BY CHATID -----
+export const fetchSession = async (chatId: string) => {
+  try {
+    const allSessions = await fetchAllFiles();
+    const sessionList = allSessions?.data.fileList.filter(
+      (session) => session.fileName === `SESSION-${chatId}`
+    );
+    if (!sessionList?.length) {
+      return null;
+    }
+    const sessionCID = sessionList[0].cid;
+    const session = await axios.get(
+      `https://gateway.lighthouse.storage/ipfs/${sessionCID}`
+    );
+    return session.data;
   } catch (error) {
     console.error(error);
   }
