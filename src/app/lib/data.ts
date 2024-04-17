@@ -2,6 +2,7 @@
 
 import axios from "axios";
 import lighthouse from "@lighthouse-web3/sdk";
+import type { PushAPI } from "@pushprotocol/restapi";
 
 // ----- FETCH ALL PROFILES FROM LIGHTHOUSE -----
 export const fetchAllFiles = async () => {
