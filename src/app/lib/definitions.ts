@@ -1,5 +1,3 @@
-import type { UserInfo } from "@particle-network/auth";
-import type { BrowserProvider, JsonRpcSigner } from "ethers";
 import type { PushAPI as PushAPIType } from "@pushprotocol/restapi";
 
 export interface User {
@@ -10,7 +8,7 @@ export interface User {
 export type AuthContextType = {
   isAuthenticated: boolean;
   user: User | null;
-  connect: () => Promise<UserInfo | null>;
+  connect: () => Promise<string | null>;
   disconnect: () => Promise<void>;
 };
 
