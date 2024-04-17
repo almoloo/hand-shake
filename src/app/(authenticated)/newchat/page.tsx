@@ -48,10 +48,6 @@ export default function page() {
 
   const initUser = async () => {
     try {
-      // console.log("👉🏻", auth?.user?.address);
-      // console.log("👉🏻", auth?.ethers?.getSigner(auth.user?.address!));
-      // console.log("👉🏻", auth?.ethersSigner());
-      // await push?.pushInit(auth?.ethers?.getSigner(auth.user?.address!)!);
       await push?.pushInit();
     } catch (error) {
       console.error("🌈", error);
