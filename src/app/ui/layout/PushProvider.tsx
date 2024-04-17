@@ -27,6 +27,7 @@ export default function PushProvider({
     const pushUser = await PushAPI.initialize(signer, {
       env,
     });
+    console.log("🚀 pushUser", pushUser);
     setPushInfo({ ...pushInfo, pushUser });
     return pushUser;
   };

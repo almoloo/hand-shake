@@ -5,6 +5,7 @@ import { InitSessionInfo } from "@/app/lib/definitions";
 import { AuthContext } from "@/app/ui/layout/AuthProvider";
 import { ProfileContext } from "@/app/ui/layout/ProfileProvider";
 import { PushContext } from "@/app/ui/layout/PushProvider";
+import { PushAPI } from "@pushprotocol/restapi";
 import { useContext, useEffect, useState } from "react";
 
 export default function page() {
@@ -16,6 +17,14 @@ export default function page() {
     description: "",
     email: "",
   });
+  const [pushUser, setPushUser] = useState<PushAPI | null>(null);
+
+  useEffect(() => {
+    if (push?.pushUser) {
+      console.log("💀🪃", push.pushUser);
+      setPushUser(push.pushUser);
+    }
+  }, [push?.pushUser]);
 
   const requestChat = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,7 +52,7 @@ export default function page() {
       // console.log("👉🏻", auth?.ethers?.getSigner(auth.user?.address!));
       // console.log("👉🏻", auth?.ethersSigner());
       // await push?.pushInit(auth?.ethers?.getSigner(auth.user?.address!)!);
-      const pushUser = await push?.pushInit();
+      await push?.pushInit();
     } catch (error) {
       console.error("🌈", error);
     }
@@ -89,7 +98,7 @@ export default function page() {
         </button>
       </form>
       <div>{JSON.stringify(userProfile)}</div>
-      <div>{JSON.stringify(push?.pushUser)}</div>
+      <div>{pushUser?.account}</div>
     </div>
   );
 }

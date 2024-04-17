@@ -33,6 +33,7 @@ export default function page() {
             <div>{session.title}</div>
             <div>{session.description}</div>
             <div>{session.chatId}</div>
+            <div>{session.CID}</div>
             <div></div>
           </div>
         ))}

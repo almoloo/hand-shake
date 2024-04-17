@@ -36,4 +36,5 @@ export interface SessionInfo {
   title: string;
   description: string;
   chatId: string;
+  CID: string;
 }

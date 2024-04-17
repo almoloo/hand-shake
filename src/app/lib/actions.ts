@@ -8,7 +8,6 @@ import {
 } from "@/app/lib/definitions";
 import { Resend } from "resend";
 import { fetchUserSessions } from "./data";
-import axios from "axios";
 
 const resend = new Resend(process.env.RESEND_API_KEY!);
 
@@ -38,7 +37,7 @@ export const sendInvitationEmail = async (
       subject: "Handshake - You have been invited to join a chat session!",
       html: `<div>
 				<div>
-					<a href="${process.env.NEXT_PUBLIC_SITE_URL}/newchat/${sessionInfo.chatId}">
+					<a href="${process.env.NEXT_PUBLIC_URL}/newchat/${sessionInfo.chatId}">
 						Accept invitation
 					</a>
 				</div>
@@ -85,18 +84,16 @@ export const requestNewChat = async (
       title: info.title,
       description: info.description,
       chatId: chatId,
+      CID: "",
     };
-    console.log("⚡️ sessioninfo", sessionInfo);
     const uploadedSession = await lighthouse.uploadText(
       JSON.stringify(sessionInfo),
       process.env.LIGHTHOUSE_API_KEY!,
       `SESSION-${chatId}`
     );
-    console.log("⚡️ uploadedSession", uploadedSession);
+    sessionInfo.CID = uploadedSession.data.Hash;
     const sentEmail = await sendInvitationEmail(sessionInfo, from);
-    console.log("⚡️ sentEmail", sentEmail);
     const isSessionSaved = saveSession(sessionInfo, from.user.uuid);
-    console.log("⚡️ isSessionSaved", isSessionSaved);
     return true;
   } catch (error) {
     console.error(error);
