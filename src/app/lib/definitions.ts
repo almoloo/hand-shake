@@ -31,3 +31,11 @@ export interface InitSessionInfo {
   title: string;
   description: string;
 }
+
+export interface SessionInfo {
+  from: string;
+  to: string;
+  title: string;
+  description: string;
+  chatId: string;
+}

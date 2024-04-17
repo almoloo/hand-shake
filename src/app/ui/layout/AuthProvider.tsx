@@ -15,7 +15,7 @@ export default function AuthProvider({
 
   const handleConnect = async () => {
     try {
-      const accounts = await sdk?.connect();
+      const accounts: any = await sdk?.connect();
       return accounts?.[0];
     } catch (error) {
       console.error("Failed to connect", error);

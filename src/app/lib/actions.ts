@@ -1,9 +1,14 @@
 "use server";
 
 import lighthouse from "@lighthouse-web3/sdk";
-import { InitSessionInfo, UserProfile } from "@/app/lib/definitions";
+import {
+  InitSessionInfo,
+  SessionInfo,
+  UserProfile,
+} from "@/app/lib/definitions";
 import { Resend } from "resend";
 import { fetchUserSessions } from "./data";
+import axios from "axios";
 
 const resend = new Resend(process.env.RESEND_API_KEY!);
 
@@ -20,14 +25,6 @@ export const saveProfile = async (profileInfo: UserProfile) => {
     console.error(error);
   }
 };
-
-interface SessionInfo {
-  from: string;
-  to: string;
-  title: string;
-  description: string;
-  chatId: string;
-}
 
 // ----- SEND INVITATION EMAIL -----
 export const sendInvitationEmail = async (
@@ -64,6 +61,8 @@ export const sendInvitationEmail = async (
 			</div>`,
     });
 
+    console.log("⚡️ email data", data);
+
     if (error) {
       throw new Error("Failed to send email");
     }
@@ -87,13 +86,17 @@ export const requestNewChat = async (
       description: info.description,
       chatId: chatId,
     };
-    await lighthouse.uploadText(
+    console.log("⚡️ sessioninfo", sessionInfo);
+    const uploadedSession = await lighthouse.uploadText(
       JSON.stringify(sessionInfo),
       process.env.LIGHTHOUSE_API_KEY!,
       `SESSION-${chatId}`
     );
-    await sendInvitationEmail(sessionInfo, from);
-    saveSession(sessionInfo, from.user.uuid);
+    console.log("⚡️ uploadedSession", uploadedSession);
+    const sentEmail = await sendInvitationEmail(sessionInfo, from);
+    console.log("⚡️ sentEmail", sentEmail);
+    const isSessionSaved = saveSession(sessionInfo, from.user.uuid);
+    console.log("⚡️ isSessionSaved", isSessionSaved);
     return true;
   } catch (error) {
     console.error(error);

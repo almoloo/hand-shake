@@ -24,6 +24,7 @@ export default function page() {
       sessionInfo.title,
       {
         description: sessionInfo.description,
+        image: `https://effigy.im/a/${userProfile?.user.address}.png`,
       }
     );
     console.log("💀", createdGroup);
