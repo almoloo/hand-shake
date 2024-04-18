@@ -1,8 +1,6 @@
 "use server";
 
-import axios from "axios";
 import lighthouse from "@lighthouse-web3/sdk";
-import type { PushAPI } from "@pushprotocol/restapi";
 
 // ----- FETCH ALL PROFILES FROM LIGHTHOUSE -----
 export const fetchAllFiles = async () => {
@@ -38,10 +36,10 @@ export const fetchProfile = async (uuid: string) => {
       (a: any, b: any) => b.lastUpdate - a.lastUpdate
     )[0];
     const profileCID = profileFile?.cid;
-    const profile = await axios.get(
+    const profile = await fetch(
       `https://gateway.lighthouse.storage/ipfs/${profileCID}`
     );
-    return profile.data;
+    return profile.json();
   } catch (error) {
     console.error(error);
   }
@@ -61,10 +59,10 @@ export const fetchUserSessions = async (uuid: string) => {
       (a: any, b: any) => b.lastUpdate - a.lastUpdate
     )[0];
     const sessionsCID = latestSessions.cid;
-    const sessions = await axios.get(
+    const sessions = await fetch(
       `https://gateway.lighthouse.storage/ipfs/${sessionsCID}`
     );
-    return sessions.data;
+    return sessions.json();
   } catch (error) {
     console.error(error);
   }
@@ -81,10 +79,10 @@ export const fetchSession = async (chatId: string) => {
       return null;
     }
     const sessionCID = sessionList[0].cid;
-    const session = await axios.get(
+    const session = await fetch(
       `https://gateway.lighthouse.storage/ipfs/${sessionCID}`
     );
-    return session.data;
+    return session.json();
   } catch (error) {
     console.error(error);
   }
