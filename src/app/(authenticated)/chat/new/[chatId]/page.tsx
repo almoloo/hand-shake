@@ -21,6 +21,7 @@ export default function page({ params }: { params: { chatId: string } }) {
     try {
       await push?.pushInit();
       const joined = await push?.pushUser?.chat.group.info(params.chatId);
+      // push?.pushUser?.chat.list()
       setTimeout(() => {
         console.log("🚀", joined);
       }, 2000);
@@ -31,6 +32,7 @@ export default function page({ params }: { params: { chatId: string } }) {
 
   const checkJoinStatus = async () => {
     const groupInfo: any = await push?.pushUser?.chat.group.info(params.chatId);
+    console.log("🚀", groupInfo);
     const groupMembers = groupInfo.members.map((member: any) =>
       member.wallet.replace("eip155:", "")
     );
