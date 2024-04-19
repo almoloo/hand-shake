@@ -35,29 +35,61 @@ export const sendInvitationEmail = async (
       from: "Handshake <send@handshake.placeholder.rest>",
       to: sessionInfo.to,
       subject: "Handshake - You have been invited to join a chat session!",
-      html: `<div>
-				<div>
-					<a href="${process.env.NEXT_PUBLIC_URL}/newchat/${sessionInfo.chatId}">
-						Accept invitation
-					</a>
-				</div>
-				<div>
-				FROM:
-				</div>
-				<div>${user.name}</div>
-				<div>${user.email}</div>
-				<div>${user.bio}</div>
-				<div>${user.user.address}</div>
-				<div>${user.user.uuid}</div>
-				<div>
-				TO:
-				</div>
-				<div>${sessionInfo.to}</div>
-				<div>${sessionInfo.title}</div>
-				<div>${sessionInfo.description}</div>
-				<div>${sessionInfo.chatId}</div>
-				<div></div>
-			</div>`,
+      html: `
+			<style>
+				.text-center {
+					text-align: center;
+				}
+				.title {
+					font-size: 1.5rem;
+					line-height: 2rem;
+					color: #1e1b4b;
+				}
+				.subtitle {
+					font-size: 1rem;
+					color: #333;
+				}
+				.box {
+					margin-top: 1rem;
+					padding: 1rem;
+					border: 1px solid #ccc;
+					border-radius: 0.5rem;
+				}
+				.profile {
+					padding: 0;
+					border: 1px solid #ccc;
+				}
+				.bio {
+					margin: 1rem 0;
+					font-size: 0.8rem;
+					color: #666;
+				}
+				.button {
+					background-color: #4c1d95;
+					color: #fff;
+					padding: 0.5rem 2rem;
+					border-radius: 0.5rem;
+					text-decoration: none;
+				}
+			</style>
+			<div class="text-center">
+				<h1 class="title">Handshake</h1>
+				<p class="subtitle">You have been invited to join a chat session.</p>
+			</div>
+			<div class="profile box">
+				<p>
+					You have been invited by ${user.name}.
+					<blockquote class="bio">${user.bio}</blockquote>
+					<a href="mailto:${user.email}">${user.email}</a>
+					Wallet address: ${user.user.address}
+				</p>
+			</div>
+			<div class="box">
+				<a class="button" href="${process.env.NEXT_PUBLIC_URL}/chat/new/${sessionInfo.chatId}">
+					Accept invitation
+				</a>
+			</div>
+			`,
     });
 
     console.log("⚡️ email data", data);
