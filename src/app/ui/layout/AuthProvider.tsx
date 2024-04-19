@@ -25,13 +25,15 @@ export default function AuthProvider({
 
   const handleDisconnect = async () => {
     try {
-      await sdk?.disconnect();
+      await sdk?.terminate();
     } catch (error) {
       console.error("Failed to disconnect", error);
     }
   };
 
   const connect = async () => {
+    if (!ready) return;
+
     if (connected) {
       const user: User = {
         uuid: account!,
@@ -63,7 +65,7 @@ export default function AuthProvider({
 
   useEffect(() => {
     connect();
-  }, [ready]);
+  }, [ready, connected]);
 
   return (
     <AuthContext.Provider value={authInfo}>{children}</AuthContext.Provider>
