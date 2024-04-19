@@ -1,30 +1,29 @@
 "use client";
 
-import { requestNewChat, sendInvitationEmail } from "@/app/lib/actions";
+import Loading from "@/app/(authenticated)/loading";
+import { requestNewChat } from "@/app/lib/actions";
 import { InitSessionInfo } from "@/app/lib/definitions";
-import { AuthContext } from "@/app/ui/layout/AuthProvider";
+import Heading from "@/app/ui/components/Heading";
 import { ProfileContext } from "@/app/ui/layout/ProfileProvider";
 import { PushContext } from "@/app/ui/layout/PushProvider";
-import { PushAPI } from "@pushprotocol/restapi";
+import { MessageSquareDashedIcon } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 
 export default function page() {
-  // const auth = useContext(AuthContext);
   const push = useContext(PushContext);
   const userProfile = useContext(ProfileContext);
+  const [loading, setLoading] = useState(true);
   const [sessionInfo, setSessionInfo] = useState<InitSessionInfo>({
     title: "",
     description: "",
     email: "",
   });
-  const [pushUser, setPushUser] = useState<PushAPI | null>(null);
 
   useEffect(() => {
-    if (push?.pushUser) {
-      console.log("💀🪃", push.pushUser);
-      setPushUser(push.pushUser);
+    if (userProfile && userProfile.user.uuid) {
+      setLoading(false);
     }
-  }, [push?.pushUser]);
+  }, [userProfile]);
 
   const requestChat = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,19 +45,16 @@ export default function page() {
     console.log("⚽️", response);
   };
 
-  const initUser = async () => {
-    try {
-      await push?.pushInit();
-    } catch (error) {
-      console.error("🌈", error);
-    }
-  };
-  return (
+  return loading ? (
+    <Loading />
+  ) : (
     <div>
-      new chat
-      <div>
-        <button onClick={initUser}>INITIALIZE PUSH USER</button>
-      </div>
+      <Heading
+        title="Create New Chat Session"
+        description="Start a new conversation on Handshake. Invite a party to a secure and verifiable chat session. Once the chat is complete, you can sign and store it on the blockchain for a trusted record of your interaction."
+        icon={<MessageSquareDashedIcon className="h-6 w-6" />}
+      />
+      new chat ({loading ? "loading" : "loaded"})
       <form
         className="m-3 flex flex-col items-start gap-3 border p-3"
         onSubmit={requestChat}
@@ -94,7 +90,6 @@ export default function page() {
         </button>
       </form>
       <div>{JSON.stringify(userProfile)}</div>
-      <div>{pushUser?.account}</div>
     </div>
   );
 }

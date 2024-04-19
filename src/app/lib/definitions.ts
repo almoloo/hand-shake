@@ -21,7 +21,7 @@ export interface UserProfile {
 
 export interface PushContextType {
   pushUser: PushAPIType | null;
-  pushInit: () => Promise<PushAPIType>;
+  pushInit: () => Promise<PushAPIType | null>;
 }
 
 export interface InitSessionInfo {
