@@ -6,13 +6,25 @@ import { InitSessionInfo } from "@/app/lib/definitions";
 import Heading from "@/app/ui/components/Heading";
 import { ProfileContext } from "@/app/ui/layout/ProfileProvider";
 import { PushContext } from "@/app/ui/layout/PushProvider";
-import { MessageSquareDashedIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  LoaderIcon,
+  MessageSquareDashedIcon,
+  MessageSquarePlusIcon,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useContext, useEffect, useState } from "react";
+import { toast } from "sonner";
 
 export default function page() {
+  const router = useRouter();
   const push = useContext(PushContext);
   const userProfile = useContext(ProfileContext);
   const [loading, setLoading] = useState(true);
+  const [submitLoading, setSubmitLoading] = useState(false);
   const [sessionInfo, setSessionInfo] = useState<InitSessionInfo>({
     title: "",
     description: "",
@@ -25,71 +37,107 @@ export default function page() {
     }
   }, [userProfile]);
 
-  const requestChat = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // const pushApi: any = push?.pushUser;
-    const createdGroup = await push?.pushUser?.chat.group.create(
-      sessionInfo.title,
-      {
-        description: sessionInfo.description,
-        image: `https://effigy.im/a/${userProfile?.user.address}.png`,
-      }
-    );
-    console.log("💀", createdGroup);
-    const response = await requestNewChat(
-      userProfile!,
-      sessionInfo,
-      createdGroup?.chatId!
-    );
+    setSubmitLoading(true);
+    try {
+      const createdGroup = await push?.pushUser?.chat.group.create(
+        sessionInfo.title,
+        {
+          description: sessionInfo.description,
+          image: `https://effigy.im/a/${userProfile?.user.address}.png`,
+        }
+      );
 
-    console.log("⚽️", response);
+      const response = await requestNewChat(
+        userProfile!,
+        sessionInfo,
+        createdGroup?.chatId!
+      );
+      toast.success("Chat session created successfully");
+      setLoading(true);
+      router.push(`/chat/${response?.chatId}`);
+    } catch (error) {
+      toast.error("Failed to create chat session");
+      console.error("🌈", error);
+    } finally {
+      setSubmitLoading(false);
+    }
   };
 
   return loading ? (
     <Loading />
   ) : (
-    <div>
+    <main
+      className={`flex grid-cols-3 flex-col lg:grid ${
+        !push?.pushUser && "opacity-50 pointer-events-none"
+      }`}
+    >
       <Heading
         title="Create New Chat Session"
-        description="Start a new conversation on Handshake. Invite a party to a secure and verifiable chat session. Once the chat is complete, you can sign and store it on the blockchain for a trusted record of your interaction."
+        description="Start a new conversation on Handshake by inviting a party to a secure and verifiable chat session."
         icon={<MessageSquareDashedIcon className="h-6 w-6" />}
+        className="col-span-2"
       />
-      new chat ({loading ? "loading" : "loaded"})
       <form
-        className="m-3 flex flex-col items-start gap-3 border p-3"
-        onSubmit={requestChat}
+        className={`col-span-2 flex flex-col space-y-5`}
+        onSubmit={handleSubmit}
       >
-        <input
-          type="email"
-          placeholder="email"
-          value={sessionInfo.email}
-          onChange={(e) =>
-            setSessionInfo({ ...sessionInfo, email: e.target.value })
-          }
-          className="border"
-        />
-        <input
-          type="text"
-          placeholder="title"
-          value={sessionInfo.title}
-          onChange={(e) =>
-            setSessionInfo({ ...sessionInfo, title: e.target.value })
-          }
-          className="border"
-        />
-        <textarea
-          placeholder="description"
-          value={sessionInfo.description}
-          onChange={(e) =>
-            setSessionInfo({ ...sessionInfo, description: e.target.value })
-          }
-          className="border"
-        />
-        <button type="submit" className="bg-blue-200">
-          submit
-        </button>
+        <fieldset>
+          <Label htmlFor="email">Recipient Email</Label>
+          <Input
+            type="email"
+            id="email"
+            placeholder="e.g. name@sample.com"
+            value={sessionInfo.email}
+            onChange={(e) =>
+              setSessionInfo({ ...sessionInfo, email: e.target.value })
+            }
+            disabled={submitLoading}
+            required
+          />
+        </fieldset>
+        <fieldset>
+          <Label htmlFor="title">Session Title</Label>
+          <Input
+            type="text"
+            id="title"
+            placeholder="e.g. Job Interview Prep"
+            value={sessionInfo.title}
+            onChange={(e) =>
+              setSessionInfo({ ...sessionInfo, title: e.target.value })
+            }
+            disabled={submitLoading}
+            required
+          />
+        </fieldset>
+        <fieldset>
+          <Label htmlFor="description">Session Description</Label>
+          <Textarea
+            id="description"
+            placeholder="e.g. Let's prepare for the upcoming job interview together. I will help you with the questions and answers."
+            value={sessionInfo.description}
+            onChange={(e) =>
+              setSessionInfo({ ...sessionInfo, description: e.target.value })
+            }
+            rows={5}
+            disabled={submitLoading}
+            required
+          >
+            {sessionInfo.description}
+          </Textarea>
+        </fieldset>
+        <div>
+          <Button type="submit" disabled={submitLoading}>
+            {submitLoading ? (
+              <LoaderIcon className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <MessageSquarePlusIcon className="mr-2 h-4 w-4" />
+            )}
+            Save Profile
+          </Button>
+        </div>
       </form>
-      <div>{JSON.stringify(userProfile)}</div>
-    </div>
+    </main>
   );
 }

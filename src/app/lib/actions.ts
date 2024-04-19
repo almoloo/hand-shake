@@ -93,11 +93,10 @@ export const requestNewChat = async (
     );
     sessionInfo.CID = uploadedSession.data.Hash;
     const sentEmail = await sendInvitationEmail(sessionInfo, from);
-    const isSessionSaved = saveSession(sessionInfo, from.user.uuid);
-    return true;
+    const isSessionSaved = await saveSession(sessionInfo, from.user.uuid);
+    return sessionInfo;
   } catch (error) {
     console.error(error);
-    return false;
   }
 };
 

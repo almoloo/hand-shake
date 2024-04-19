@@ -31,7 +31,7 @@ export default function Layout({
   return (
     <>
       {!push?.pushUser && (
-        <Alert variant="default" className="my-5 bg-rose-200/10">
+        <Alert variant="default" className="mt-7 bg-rose-200/10">
           <MessageSquareWarning className="h-4 w-4" />
           <AlertTitle>Push user not initialized</AlertTitle>
           <AlertDescription>

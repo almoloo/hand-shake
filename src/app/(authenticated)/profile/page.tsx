@@ -72,7 +72,7 @@ export default function page() {
           icon={<UserRoundCogIcon className="h-6 w-6" />}
         />
         <form className="flex flex-col space-y-5" onSubmit={handleSubmit}>
-          <div>
+          <fieldset>
             <Label htmlFor="name-input">Name</Label>
             <Input
               id="name-input"
@@ -85,8 +85,8 @@ export default function page() {
               disabled={submitLoading}
               required
             />
-          </div>
-          <div>
+          </fieldset>
+          <fieldset>
             <Label htmlFor="email-input">Email</Label>
             <Input
               id="email-input"
@@ -99,8 +99,8 @@ export default function page() {
               disabled={submitLoading}
               required
             />
-          </div>
-          <div>
+          </fieldset>
+          <fieldset>
             <Label htmlFor="bio-input">Bio</Label>
             <Textarea
               id="bio-input"
@@ -115,7 +115,7 @@ export default function page() {
             >
               {formData?.bio}
             </Textarea>
-          </div>
+          </fieldset>
           <div>
             <Button type="submit" disabled={submitLoading}>
               {submitLoading ? (
