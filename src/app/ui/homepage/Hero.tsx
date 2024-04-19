@@ -8,7 +8,7 @@ const outfit = Outfit({ subsets: ["latin"] });
 export default function Hero() {
   return (
     <section className="flex grow grid-cols-12 flex-col-reverse gap-14 py-14 lg:grid lg:items-center">
-      <div className="col-start-2 col-end-8">
+      <div className="info-card col-start-2 col-end-8">
         <h2
           className={`${outfit.className} text-3xl font-bold leading-normal mb-5`}
         >
