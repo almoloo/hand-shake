@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { User, UserProfile } from "@/app/lib/definitions";
+import { User } from "@/app/lib/definitions";
 import { saveProfile } from "@/app/lib/actions";
 import { fetchProfile } from "@/app/lib/data";
 import { useSDK } from "@metamask/sdk-react";
@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { EyeIcon, LoaderIcon, SaveIcon, UserRoundCog } from "lucide-react";
+import { EyeIcon, LoaderIcon, SaveIcon, UserRoundCogIcon } from "lucide-react";
 import Heading from "@/app/ui/components/Heading";
 import ProfileCard from "@/app/ui/profile/ProfileCard";
 
@@ -20,7 +20,6 @@ export default function page() {
   const [loading, setLoading] = useState(true);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [userInfo, setUserInfo] = useState<User | null>(null);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [formData, setFormData] = useState({
     email: "",
     name: "",
@@ -39,7 +38,6 @@ export default function page() {
     if (!userInfo) return;
     const getProfile = async () => {
       const profile = await fetchProfile(userInfo?.uuid!);
-      setProfile(profile);
       setFormData(profile);
       setLoading(false);
     };
@@ -71,7 +69,7 @@ export default function page() {
         <Heading
           title="Edit Profile"
           description="This information will be included in chat invitation emails, making your invitations more recognizable and meaningful. Create a profile that represents you and your conversations."
-          icon={<UserRoundCog className="h-6 w-6" />}
+          icon={<UserRoundCogIcon className="h-6 w-6" />}
         />
         <form className="flex flex-col space-y-5" onSubmit={handleSubmit}>
           <div>
