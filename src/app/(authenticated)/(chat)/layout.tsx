@@ -1,4 +1,5 @@
 "use client";
+import { AuthContext } from "@/app/ui/layout/AuthProvider";
 import { PushContext } from "@/app/ui/layout/PushProvider";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -8,20 +9,26 @@ import {
   UserRoundPlusIcon,
 } from "lucide-react";
 import React, { useContext, useState } from "react";
+import { toast } from "sonner";
 
 export default function Layout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const auth = useContext(AuthContext);
   const push = useContext(PushContext);
   const [loadingPush, setLoadingPush] = useState(false);
 
   const initPushUser = async () => {
     setLoadingPush(true);
     try {
+      if (!auth?.isAuthenticated) {
+        await auth?.connect();
+      }
       await push?.pushInit();
     } catch (error) {
+      toast.error("Failed to initialize push user");
       console.error("🌈", error);
     } finally {
       setLoadingPush(false);

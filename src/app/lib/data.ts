@@ -24,10 +24,11 @@ export const fetchAllFiles = async () => {
 
 // ----- FETCH PROFILE FROM LIGHTHOUSE -----
 export const fetchProfile = async (uuid: string) => {
+  if (!uuid) return null;
   try {
     const allProfiles = await fetchAllFiles();
     const filteredProfiles = allProfiles?.data.fileList.filter(
-      (profile: any) => profile.fileName === `PROFILE-${uuid}`
+      (profile: any) => profile.fileName == `PROFILE-${uuid.toLowerCase()}`
     );
     if (!filteredProfiles?.length) {
       return null;
