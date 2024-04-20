@@ -19,6 +19,13 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  SignProtocolClient,
+  SpMode,
+  OffChainSignType,
+  OffChainRpc,
+  IndexService,
+} from "@ethsign/sp-sdk";
 import clsx from "clsx";
 import {
   FilePenIcon,
@@ -26,7 +33,9 @@ import {
   LoaderIcon,
   MessageSquareTextIcon,
   ShieldAlertIcon,
+  SquareArrowOutUpRightIcon,
 } from "lucide-react";
+import Link from "next/link";
 import { useContext, useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -36,14 +45,34 @@ export default function page({ params }: { params: { chatId: string } }) {
   const [loading, setLoading] = useState(true);
   const [loadingMessages, setLoadingMessages] = useState(true);
   const [loadingSign, setLoadingSign] = useState(false);
+  const [loadingAttestation, setLoadingAttestation] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [messages, setMessages] = useState<any[]>([]);
   const [sortedMessages, setSortedMessages] = useState<any[]>([]);
   const [message, setMessage] = useState("");
   const [groupInfo, setGroupInfo] = useState<any>(null);
   const [groupUsers, setGroupUsers] = useState<any>([]);
+  const [attestationId, setAttestationId] = useState<string | null>(null);
 
   let refreshInterval: any = null;
+
+  useEffect(() => {
+    const getAttestation = async () => {
+      const indexService = new IndexService("testnet");
+      const res = await indexService.queryAttestationList({
+        indexingValue: params.chatId,
+        page: 1,
+      });
+      if (res.rows.length > 0) {
+        setAttestationId(res.rows[0].attestationId);
+      }
+      setLoadingAttestation(false);
+    };
+    if (!attestationId && !loadingAttestation) {
+      setLoadingAttestation(true);
+      getAttestation();
+    }
+  }, [params.chatId]);
 
   useEffect(() => {
     const init = async () => {
@@ -93,8 +122,10 @@ export default function page({ params }: { params: { chatId: string } }) {
     }
   }, [messages]);
 
-  const refreshMessages = async () => {
-    setLoadingMessages(true);
+  const refreshMessages = async (showLoader?: boolean) => {
+    if (showLoader) {
+      setLoadingMessages(true);
+    }
     try {
       const chats = await push?.pushUser?.chat.history(params.chatId);
       if (chats) {
@@ -104,7 +135,9 @@ export default function page({ params }: { params: { chatId: string } }) {
       toast.error("Failed to fetch messages");
       console.error(error);
     } finally {
-      setLoadingMessages(false);
+      if (showLoader) {
+        setLoadingMessages(false);
+      }
     }
   };
 
@@ -129,6 +162,39 @@ export default function page({ params }: { params: { chatId: string } }) {
   const handleSignChat = async () => {
     setLoadingSign(true);
     setLoading(true);
+    try {
+      const condensedMessages = messages.map((msg) => ({
+        from: msg.fromDID.replace("eip155:", ""),
+        content: msg.messageContent,
+        timestamp: msg.timestamp,
+      }));
+      const strMessages = JSON.stringify(condensedMessages);
+      const signableData = {
+        create_date: new Date().getTime(),
+        messages: strMessages,
+        party_1: groupInfo.members[0].wallet.replace("eip155:", ""),
+        party_2: groupInfo.members[1].wallet.replace("eip155:", ""),
+      };
+
+      const client = new SignProtocolClient(SpMode.OffChain, {
+        signType: OffChainSignType.EvmEip712,
+        rpcUrl: OffChainRpc.testnet,
+      });
+
+      const attestation = await client.createAttestation({
+        schemaId: "SPS_-PPfAHa9JJBHHE1b-Ajv1",
+        data: signableData,
+        indexingValue: params.chatId,
+      });
+      setAttestationId(attestation.attestationId);
+      toast.success("Chat session signed successfully");
+    } catch (error) {
+      toast.error("Failed to sign chat session");
+      console.error("🌈", error);
+    } finally {
+      setLoadingSign(false);
+      setLoading(false);
+    }
   };
 
   return loading ? (
@@ -197,23 +263,33 @@ export default function page({ params }: { params: { chatId: string } }) {
                       </div>
                     )}
                   </div>
-                  <form className="mt-5" onSubmit={handleSubmit}>
-                    <fieldset>
-                      <div className="flex space-x-2">
-                        <Input
-                          type="text"
-                          value={message}
-                          onChange={(e) => setMessage(e.target.value)}
-                          placeholder="Type your message here..."
-                          disabled={submitLoading}
-                          required
-                        />
-                        <Button type="submit" disabled={submitLoading}>
-                          Send
-                        </Button>
-                      </div>
-                    </fieldset>
-                  </form>
+                  {loadingAttestation ? (
+                    <div className="flex items-center justify-center p-5">
+                      <LoaderIcon className="h-5 w-5 animate-spin" />
+                    </div>
+                  ) : (
+                    <>
+                      {!attestationId && (
+                        <form className="mt-5" onSubmit={handleSubmit}>
+                          <fieldset>
+                            <div className="flex space-x-2">
+                              <Input
+                                type="text"
+                                value={message}
+                                onChange={(e) => setMessage(e.target.value)}
+                                placeholder="Type your message here..."
+                                disabled={submitLoading}
+                                required
+                              />
+                              <Button type="submit" disabled={submitLoading}>
+                                Send
+                              </Button>
+                            </div>
+                          </fieldset>
+                        </form>
+                      )}
+                    </>
+                  )}
                 </>
               ) : (
                 <div className="mt-7 flex flex-col items-center justify-center rounded-lg border px-7 py-14">
@@ -243,44 +319,70 @@ export default function page({ params }: { params: { chatId: string } }) {
                   />
                 )
             )}
-            <div className="mt-5 border-t pt-5">
-              <AlertDialog>
-                <AlertDialogTrigger className="w-full">
-                  <Button variant="destructive" className="w-full">
-                    Sign and Close Chat Session
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>
-                      Sign and Close Chat Session
-                    </AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Are you sure you want to sign this chat session?
-                      <br />
-                      By signing, you will close the chat session and prevent
-                      any further messages from being sent.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel disabled={loadingSign}>
-                      Cancel
-                    </AlertDialogCancel>
-                    <AlertDialogAction
-                      disabled={loadingSign}
-                      onClick={handleSignChat}
+            {loadingAttestation ? (
+              <div className="flex items-center justify-center p-5">
+                <LoaderIcon className="h-5 w-5 animate-spin" />
+              </div>
+            ) : (
+              <>
+                {!attestationId ? (
+                  <div className="mt-5 border-t pt-5">
+                    <AlertDialog>
+                      <AlertDialogTrigger className="w-full" asChild>
+                        <Button variant="destructive" className="w-full">
+                          Sign and Close Chat Session
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>
+                            Sign and Close Chat Session
+                          </AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to sign this chat session?
+                            <br />
+                            By signing, you will close the chat session and
+                            prevent any further messages from being sent.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel disabled={loadingSign}>
+                            Cancel
+                          </AlertDialogCancel>
+                          <AlertDialogAction
+                            disabled={loadingSign}
+                            onClick={handleSignChat}
+                          >
+                            {loadingSign ? (
+                              <LoaderIcon className="mr-2 h-4 w-4 animate-spin" />
+                            ) : (
+                              <FilePenIcon className="mr-2 h-4 w-4" />
+                            )}
+                            Proceed
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                ) : (
+                  <div className="mt-5 border-emerald-900/25 bg-emerald-400/10 p-5">
+                    <p className="mb-5 text-center text-sm">
+                      This chat session has been signed and closed.
+                    </p>
+                    <Link
+                      href={`https://testnet-scan.sign.global/attestation/${attestationId}`}
+                      target="_blank"
+                      passHref
                     >
-                      {loadingSign ? (
-                        <LoaderIcon className="mr-2 h-4 w-4 animate-spin" />
-                      ) : (
-                        <FilePenIcon className="mr-2 h-4 w-4" />
-                      )}
-                      Proceed
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            </div>
+                      <Button variant="outline" className="w-full">
+                        <SquareArrowOutUpRightIcon className="mr-2 h-4 w-4" />
+                        View Session Signature
+                      </Button>
+                    </Link>
+                  </div>
+                )}
+              </>
+            )}
           </section>
         </main>
       ) : (
@@ -298,22 +400,5 @@ export default function page({ params }: { params: { chatId: string } }) {
         </section>
       )}
     </>
-    // <div>
-    //   <div>page: {params.chatId}</div>
-    //   <button onClick={initUser}>
-    //     INITIALIZE PUSH USER (${push?.pushUser?.account})
-    //   </button>
-    //   <form onSubmit={handleSendMessage}>
-    //     <textarea
-    //       className="border"
-    //       value={message}
-    //       onChange={(e) => setMessage(e.target.value)}
-    //     ></textarea>
-    //     <button type="submit">Send</button>
-    //   </form>
-    //   <div>
-    //     <button onClick={getChats}>GET ALL CHATS</button>
-    //   </div>
-    // </div>
   );
 }

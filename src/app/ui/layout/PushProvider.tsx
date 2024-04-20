@@ -15,7 +15,11 @@ export default function PushProvider({
 }) {
   const initPushUser = async () => {
     try {
-      const signer = await new ethers.providers.Web3Provider(
+      // const signer = await new ethers.providers.Web3Provider(
+      //   window.ethereum as any,
+      //   "any"
+      // ).getSigner();
+      const signer = await new ethers.BrowserProvider(
         window.ethereum as any,
         "any"
       ).getSigner();
