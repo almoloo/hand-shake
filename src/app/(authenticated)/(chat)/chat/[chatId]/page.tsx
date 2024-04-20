@@ -5,11 +5,25 @@ import { fetchProfile } from "@/app/lib/data";
 import Heading from "@/app/ui/components/Heading";
 import { AuthContext } from "@/app/ui/layout/AuthProvider";
 import { PushContext } from "@/app/ui/layout/PushProvider";
+import ProfileCard from "@/app/ui/profile/ProfileCard";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import clsx from "clsx";
 import {
+  FilePenIcon,
   HourglassIcon,
+  LoaderIcon,
   MessageSquareTextIcon,
   ShieldAlertIcon,
 } from "lucide-react";
@@ -21,11 +35,15 @@ export default function page({ params }: { params: { chatId: string } }) {
   const auth = useContext(AuthContext);
   const [loading, setLoading] = useState(true);
   const [loadingMessages, setLoadingMessages] = useState(true);
+  const [loadingSign, setLoadingSign] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [messages, setMessages] = useState<any[]>([]);
+  const [sortedMessages, setSortedMessages] = useState<any[]>([]);
   const [message, setMessage] = useState("");
   const [groupInfo, setGroupInfo] = useState<any>(null);
   const [groupUsers, setGroupUsers] = useState<any>([]);
+
+  let refreshInterval: any = null;
 
   useEffect(() => {
     const init = async () => {
@@ -58,12 +76,22 @@ export default function page({ params }: { params: { chatId: string } }) {
         setMessages(chats);
       }
       setLoadingMessages(false);
+      refreshInterval = setInterval(() => {
+        refreshMessages();
+      }, 10000);
     };
     if (groupInfo) {
       setLoadingMessages(true);
       getChats();
     }
   }, [groupInfo]);
+
+  useEffect(() => {
+    if (messages) {
+      const sorted = messages.sort((a, b) => a.timestamp - b.timestamp);
+      setSortedMessages(sorted);
+    }
+  }, [messages]);
 
   const refreshMessages = async () => {
     setLoadingMessages(true);
@@ -98,46 +126,76 @@ export default function page({ params }: { params: { chatId: string } }) {
     }
   };
 
+  const handleSignChat = async () => {
+    setLoadingSign(true);
+    setLoading(true);
+  };
+
   return loading ? (
     <Loading />
   ) : (
     <>
       {groupInfo ? (
-        <main className="flex grid-cols-3 flex-col space-x-10 lg:grid">
-          <section className="col-span-2">
+        <main className="flex grow grid-cols-3 flex-col space-x-10 lg:grid">
+          <section className="col-span-2 flex grow flex-col">
             <Heading
               title={`Chat Session: ${groupInfo?.groupName}`}
               description={groupInfo?.groupDescription}
               icon={<MessageSquareTextIcon className="h-6 w-6" />}
             />
-            <div>
+            <div className="flex grow flex-col">
               {loadingMessages ? (
                 <div className="mt-7 flex flex-col items-center justify-center px-7 py-14">
                   <Loading />
                 </div>
               ) : groupInfo.members.length > 1 ? (
                 <>
-                  <div className="flex flex-col space-y-5">
-                    {messages.length > 0
-                      ? messages.map((msg, idx) => (
-                          <div
-                            key={idx}
-                            className={clsx("p-2 rounded-lg", {
-                              "bg-blue-700 text-white":
-                                msg.fromDID.replace("eip155:", "") ===
-                                auth?.user?.address,
-                              "bg-neutral-200 text-black":
-                                msg.fromDID.replace("eip155:", "") !==
-                                auth?.user?.address,
-                            })}
-                          >
-                            <small className="mb-1 block font-medium">
+                  <div className="flex grow flex-col space-y-5">
+                    {sortedMessages.length > 0 ? (
+                      sortedMessages.map((msg, idx) => (
+                        <div
+                          key={idx}
+                          className={clsx(
+                            "flex flex-col space-y-1 p-2 rounded-lg w-3/4",
+                            {
+                              "bg-blue-500 text-white self-start":
+                                msg.fromDID
+                                  .replace("eip155:", "")
+                                  .toLowerCase() === auth?.user?.address,
+                              "bg-neutral-200 text-black self-end":
+                                msg.fromDID
+                                  .replace("eip155:", "")
+                                  .toLowerCase() !== auth?.user?.address,
+                            }
+                          )}
+                        >
+                          <small className="block overflow-hidden text-ellipsis whitespace-nowrap font-medium">
+                            (
+                            {msg.fromDID
+                              .replace("eip155:", "")
+                              .toLowerCase() === auth?.user?.address
+                              ? "You"
+                              : groupUsers.find(
+                                  (user: any) =>
+                                    user.wallet ===
+                                    msg.fromDID.replace("eip155:", "")
+                                )?.name ?? "Unknown User"}
+                            ){" "}
+                            <span className="opacity-70">
                               {msg.fromDID.replace("eip155:", "")}
-                            </small>
-                            <p>{msg.messageContent}</p>
-                          </div>
-                        ))
-                      : "No messages yet"}
+                            </span>
+                          </small>
+                          <p>{msg.messageContent}</p>
+                          <small className="block self-end text-xs">
+                            {new Date(msg.timestamp).toLocaleString()}
+                          </small>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="my-7 rounded-lg border bg-neutral-400/15 px-7 py-14">
+                        There are no messages in this chat session.
+                      </div>
+                    )}
                   </div>
                   <form className="mt-5" onSubmit={handleSubmit}>
                     <fieldset>
@@ -169,6 +227,59 @@ export default function page({ params }: { params: { chatId: string } }) {
                   </p>
                 </div>
               )}
+            </div>
+          </section>
+          <section className="col-span-1">
+            <Heading title="Members` Information" className="text-center" />
+            {groupUsers.map(
+              (user: any, idx: number) =>
+                user && (
+                  <ProfileCard
+                    key={idx}
+                    address={user.user.address}
+                    bio={user.bio}
+                    email={user.email}
+                    name={user.name}
+                  />
+                )
+            )}
+            <div className="mt-5 border-t pt-5">
+              <AlertDialog>
+                <AlertDialogTrigger className="w-full">
+                  <Button variant="destructive" className="w-full">
+                    Sign and Close Chat Session
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>
+                      Sign and Close Chat Session
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to sign this chat session?
+                      <br />
+                      By signing, you will close the chat session and prevent
+                      any further messages from being sent.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel disabled={loadingSign}>
+                      Cancel
+                    </AlertDialogCancel>
+                    <AlertDialogAction
+                      disabled={loadingSign}
+                      onClick={handleSignChat}
+                    >
+                      {loadingSign ? (
+                        <LoaderIcon className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <FilePenIcon className="mr-2 h-4 w-4" />
+                      )}
+                      Proceed
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           </section>
         </main>
