@@ -78,7 +78,7 @@ export default function page() {
               id="name-input"
               placeholder="e.g. John Doe"
               type="text"
-              value={formData?.name}
+              value={formData?.name ?? ""}
               onInput={(e: React.ChangeEvent<HTMLInputElement>) =>
                 setFormData({ ...formData, name: e.target.value })
               }
@@ -92,7 +92,7 @@ export default function page() {
               id="email-input"
               placeholder="e.g. name@sample.com"
               type="email"
-              value={formData?.email}
+              value={formData?.email ?? ""}
               onInput={(e: React.ChangeEvent<HTMLInputElement>) =>
                 setFormData({ ...formData, email: e.target.value })
               }
@@ -105,16 +105,14 @@ export default function page() {
             <Textarea
               id="bio-input"
               placeholder="Briefly introduce yourself. Share a little about your interests or background."
-              value={formData?.bio}
+              value={formData?.bio ?? ""}
               onInput={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
                 setFormData({ ...formData, bio: e.target.value })
               }
               rows={5}
               disabled={submitLoading}
               required
-            >
-              {formData?.bio}
-            </Textarea>
+            ></Textarea>
           </fieldset>
           <div>
             <Button type="submit" disabled={submitLoading}>
@@ -137,9 +135,9 @@ export default function page() {
         <ProfileCard
           className="row-span-1"
           address={userInfo?.address!}
-          email={formData.email}
-          name={formData.name}
-          bio={formData.bio}
+          email={formData?.email || ""}
+          name={formData?.name || ""}
+          bio={formData?.bio || ""}
         />
       </section>
     </main>
