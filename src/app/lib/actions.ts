@@ -1,5 +1,6 @@
 "use server";
 
+const bls = require("bls-eth-wasm");
 import lighthouse from "@lighthouse-web3/sdk";
 import {
   InitSessionInfo,
