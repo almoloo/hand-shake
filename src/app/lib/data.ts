@@ -1,6 +1,7 @@
 "use server";
 
 import lighthouse from "@lighthouse-web3/sdk";
+const bls = require("bls-eth-wasm");
 
 // ----- FETCH ALL PROFILES FROM LIGHTHOUSE -----
 export const fetchAllFiles = async () => {
